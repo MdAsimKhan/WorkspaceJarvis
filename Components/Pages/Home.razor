@@ -3,37 +3,40 @@
 @using WorkspaceJarvis.UI.Services
 @inject WorkspaceService WorkspaceService
 
-<MudStack Spacing="3">
-    <MudText Typo="Typo.body1">Select a workspace to launch</MudText>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="main-viewport py-4">
 
-    @if (workspaces.Count == 0)
-    {
-        <MudAlert Severity="Severity.Info">No workspaces configured.</MudAlert>
-    }
-    else
-    {
-        <MudGrid Spacing="3">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" Class="sticky-header mb-4">
+        <MudText Typo="Typo.h5">Your Workspaces</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.AddCircle" Color="Color.Info" Size="Size.Large" />
+    </MudStack>
+
+    <MudPaper Outlined="true" Class="scrollable-grid-container">
+        <div class="scrollable-grid-content">
+            <MudGrid Spacing="4">
             @foreach (var ws in workspaces)
             {
-                <MudItem xs="12" sm="6">
-                    <MudCard Elevation="1">
-                        <MudCardContent>
-                            <MudText Typo="Typo.h6" Color="Color.Primary">@ws.Name</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">@ws.Paths.Count items configured</MudText>
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudButton Variant="Variant.Filled"
-                                       Color="Color.Success"
-                                       OnClick="@(() => WorkspaceService.Launch(ws))">
-                                Launch
-                            </MudButton>
-                        </MudCardActions>
+                <MudItem xs="12" sm="6" md="4" lg="2">
+                    <MudCard Class="workspace-card pa-3 d-flex flex-column justify-space-between">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Style="opacity: 0.5;" />
+                            <MudIconButton Icon="@Icons.Material.Filled.EditNote" Color="Color.Info" Size="Size.Small" />
+                        </MudStack>
+
+                        <MudStack AlignItems="AlignItems.Center" Spacing="0">
+                            <MudText Typo="Typo.subtitle2" Class="fw-bold text-uppercase">@ws.Name</MudText>
+                            <MudText Typo="Typo.caption">Apps: @ws.Paths.Count</MudText>
+                        </MudStack>
+
+                        <MudButton Variant="Variant.Filled" Class="launch-btn" @onclick="() => WorkspaceService.Launch(ws)">
+                            Launch
+                        </MudButton>
                     </MudCard>
                 </MudItem>
             }
-        </MudGrid>
-    }
-</MudStack>
+            </MudGrid>
+        </div>
+    </MudPaper>
+</MudContainer>
 
 @code {
     private List<Workspace> workspaces = new();
@@ -41,5 +44,10 @@
     protected override void OnInitialized()
     {
         workspaces = WorkspaceService.GetWorkspaces();
+    }
+
+    private void OpenAddDialog()
+    {
+        // We will implement the Create logic here next!
     }
 }

@@ -1,6 +1,125 @@
-﻿/*#if (SampleContent)*/
-html, body {
+﻿.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Prevents long names from breaking the card layout */
+.mud-typography-subtitle2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Layout & Scroll Locking */
+.main-viewport {
+    flex: 1 1 auto;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.sticky-header {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.scrollable-grid-container {
+    flex: 1 1 auto;
+    height: calc(100vh - 178px);
+    height: calc(100dvh - 178px);
+    max-height: calc(100vh - 178px);
+    max-height: calc(100dvh - 178px);
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background-color: #f0f0e0;
+    border-radius: 40px;
+    border: 2px solid #555;
+}
+
+.scrollable-grid-content {
+    min-width: 100%;
+    padding: 32px;
+    box-sizing: border-box;
+}
+
+/* Custom Scrollbar */
+.scrollable-grid-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.scrollable-grid-container::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 10px;
+}
+
+/* Card Styling */
+.workspace-card {
+    background-color: #fdfae5;
+    border: 1.5px solid #2c2c2c;
+    border-radius: 20px;
+    height: 210px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.workspace-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+.launch-btn {
+    background-color: #90ee90 !important; /* Overriding MudBlazor default */
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+}
+
+html, body, #app {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.mud-layout {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.app-main-content {
+    flex: 1 1 auto;
+    display: flex;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.app-content {
+    flex: 1 1 auto;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 a, .btn-link {
