@@ -1,0 +1,45 @@
+﻿@page "/"
+@using WorkspaceJarvis.UI.Models
+@using WorkspaceJarvis.UI.Services
+@inject WorkspaceService WorkspaceService
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.body1">Select a workspace to launch</MudText>
+
+    @if (workspaces.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">No workspaces configured.</MudAlert>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            @foreach (var ws in workspaces)
+            {
+                <MudItem xs="12" sm="6">
+                    <MudCard Elevation="1">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Color="Color.Primary">@ws.Name</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@ws.Paths.Count items configured</MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Success"
+                                       OnClick="@(() => WorkspaceService.Launch(ws))">
+                                Launch
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudStack>
+
+@code {
+    private List<Workspace> workspaces = new();
+
+    protected override void OnInitialized()
+    {
+        workspaces = WorkspaceService.GetWorkspaces();
+    }
+}
