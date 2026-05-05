@@ -2,8 +2,9 @@
 
 public class Workspace
 {
-    public string Name { get; set; } = string.Empty;
-    public List<string> Paths { get; set; } = [];
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Name { get; set; } = "";
+    public List<string> Paths { get; set; } = new();
 }
 
 public class WorkspaceConfig

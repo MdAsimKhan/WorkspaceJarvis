@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using WorkspaceJarvis.UI.Models
 @using WorkspaceJarvis.UI.Services
 @inject WorkspaceService WorkspaceService
@@ -31,7 +31,7 @@
                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                             Color="Color.Error"
                                             Size="Size.Small"
-                                            OnClick="@(() => OnDeleteClicked(ws.Name))" />
+                                            OnClick="@(() => OnDeleteClicked(ws))" />
                             <MudIconButton Icon="@Icons.Material.Filled.EditNote"
                                             Color="Color.Info"
                                             Size="Size.Small"
@@ -84,7 +84,7 @@
     private async Task OpenEditDialog(Workspace ws)
     {
         // Capture the name before the user edits it
-        string oldName = ws.Name;
+
 
         var parameters = new DialogParameters<AddWorkspaceDialog>
         {
@@ -97,7 +97,7 @@
         if (!result.Canceled && result.Data is Workspace updatedWs)
         {
             // Call the service using both the old identifier and the new data
-            var updateResult = WorkspaceService.UpdateWorkspace(oldName, updatedWs);
+            var updateResult = WorkspaceService.UpdateWorkspace(updatedWs);
 
             if (updateResult.Success)
             {
@@ -111,18 +111,18 @@
         }
     }
 
-    private async Task OnDeleteClicked(string name)
+    private async Task OnDeleteClicked(Workspace ws)
     {
         // 1. Ask for confirmation
         bool? result = await DialogService.ShowMessageBoxAsync(
             "Warning",
-            $"Are you sure you want to delete the workspace '{name}'?",
+            $"Are you sure you want to delete the workspace '{ws.Name}'?",
             yesText: "Delete!", cancelText: "Cancel");
 
         // 2. Process the result
         if (result == true)
         {
-            var deleteResult = WorkspaceService.DeleteWorkspace(name);
+            var deleteResult = WorkspaceService.DeleteWorkspace(ws.Id);
 
             if (deleteResult.Success)
             {

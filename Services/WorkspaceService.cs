@@ -1,4 +1,4 @@
-﻿using WorkspaceJarvis.UI.Models;
+using WorkspaceJarvis.UI.Models;
 using System.Text.Json;
 using System.Diagnostics;
 
@@ -62,24 +62,18 @@ public class WorkspaceService
         }
     }
 
-    public (bool Success, string Message) DeleteWorkspace(string workspaceName)
+    public (bool Success, string Message) DeleteWorkspace(Guid id)
     {
         try
         {
             var workspaces = GetWorkspaces();
-
-            // Find the item to remove
-            var itemToRemove = workspaces.FirstOrDefault(w => w.Name == workspaceName);
+            var itemToRemove = workspaces.FirstOrDefault(w => w.Id == id);
 
             if (itemToRemove == null)
                 return (false, "Workspace not found.");
 
             workspaces.Remove(itemToRemove);
-
-            // Save the updated list
-            var config = new WorkspaceConfig { Workspaces = workspaces };
-            var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_configPath, json);
+            SaveAll(workspaces);
 
             return (true, "Workspace deleted successfully!");
         }
@@ -89,20 +83,17 @@ public class WorkspaceService
         }
     }
 
-    public (bool Success, string Message) UpdateWorkspace(string oldName, Workspace updatedWs)
+    public (bool Success, string Message) UpdateWorkspace(Workspace updatedWs)
     {
         try
         {
             var workspaces = GetWorkspaces();
-            var index = workspaces.FindIndex(w => w.Name == oldName);
+            var index = workspaces.FindIndex(w => w.Id == updatedWs.Id);
 
             if (index == -1) return (false, "Workspace not found.");
 
             workspaces[index] = updatedWs;
-
-            var config = new WorkspaceConfig { Workspaces = workspaces };
-            var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_configPath, json);
+            SaveAll(workspaces);
 
             return (true, "Workspace updated!");
         }
@@ -110,5 +101,13 @@ public class WorkspaceService
         {
             return (false, ex.Message);
         }
+    }
+
+
+    private void SaveAll(List<Workspace> workspaces)
+    {
+        var json = JsonSerializer.Serialize(new { Workspaces = workspaces },
+            new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(_configPath, json);
     }
 }
