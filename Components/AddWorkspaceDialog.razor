@@ -9,10 +9,36 @@
         </MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField T="string" Label="Workspace Name" @bind-Value="workspaceModel.Name" Required="true" />
+        <MudTextField T="string" Label="Workspace Name" @bind-Value="workspaceModel.Name" Required="true" Class="mb-4" />
 
-        @* For now, we'll edit just one path. Later we can add a list! *@
-        <MudTextField T="string" Label="App/File Path" @bind-Value="singlePath" HelperText="Paste the full path to the executable or file" />
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Included Apps & Files</MudText>
+
+        @* Scrollable Container *@
+        <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--mud-palette-lines-inputs); border-radius: 4px; padding: 8px;">
+            <MudList T="string" Clickable="false">
+                @if (!workspaceModel.Paths.Any())
+                {
+                    <MudListItem Text="No paths added yet" Icon="@Icons.Material.Filled.Info" />
+                }
+                else
+                {
+                    @foreach (var path in workspaceModel.Paths)
+                    {
+                        <MudListItem Icon="@Icons.Material.Filled.InsertDriveFile">
+                            <div class="d-flex align-center justify-space-between w-100">
+                                <MudText Typo="Typo.body2" Style="word-break: break-all; margin-right: 8px;">@path</MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemovePath(path))" />
+                            </div>
+                        </MudListItem>
+                    }
+                }
+
+                @* Add Button at the bottom of the list *@
+                <MudListItem OnClick="BrowseFiles" Icon="@Icons.Material.Filled.AddCircle" IconColor="Color.Primary">
+                    <MudText Color="Color.Primary">Add App or File...</MudText>
+                </MudListItem>
+            </MudList>
+        </div>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -29,7 +55,6 @@
 
     // This is our "working copy" for the form
     private Workspace workspaceModel = new();
-    private string singlePath = "";
 
     protected override void OnParametersSet()
     {
@@ -43,8 +68,6 @@
                 // Create a copy of the paths so we don't modify the UI list prematurely
                 Paths = new List<string>(ExistingWorkspace.Paths)
             };
-
-            singlePath = workspaceModel.Paths.FirstOrDefault() ?? "";
         }
     }
 
@@ -55,13 +78,38 @@
         // Simple validation: Ensure Name isn't empty
         if (string.IsNullOrWhiteSpace(workspaceModel.Name)) return;
 
-        // Update the paths list based on the text box
-        workspaceModel.Paths.Clear();
-        if (!string.IsNullOrWhiteSpace(singlePath))
-        {
-            workspaceModel.Paths.Add(singlePath);
-        }
+        // The paths are already in workspaceModel.Paths from the BrowseFiles logic
 
         MudDialog.Close(DialogResult.Ok(workspaceModel));
+    }
+
+    private async Task BrowseFiles()
+    {
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select an Application or File"
+            });
+
+            if (result != null)
+            {
+                // Prevent duplicate paths
+                if (!workspaceModel.Paths.Contains(result.FullPath))
+                {
+                    workspaceModel.Paths.Add(result.FullPath);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle cases where the picker fails or is cancelled
+            Console.WriteLine($"File picking failed: {ex.Message}");
+        }
+    }
+
+    private void RemovePath(string path)
+    {
+        workspaceModel.Paths.Remove(path);
     }
 }
