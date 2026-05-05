@@ -3,33 +3,64 @@
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Add New Workspace</MudText>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@(ExistingWorkspace == null ? Icons.Material.Filled.Add : Icons.Material.Filled.Edit)" Class="mr-3" />
+            @(ExistingWorkspace == null ? "Add New Workspace" : "Edit Workspace")
+        </MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField T="string" Label="Workspace Name" @bind-Value="newWorkspace.Name" Required="true" />
-        <MudTextField T="string" Label="App Path or URL" @bind-Value="initialPath" HelperText="e.g., C:\Apps\notepad.exe or https://google.com" />
+        <MudTextField T="string" Label="Workspace Name" @bind-Value="workspaceModel.Name" Required="true" />
+
+        @* For now, we'll edit just one path. Later we can add a list! *@
+        <MudTextField T="string" Label="App/File Path" @bind-Value="singlePath" HelperText="Paste the full path to the executable or file" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Create</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">
+            @(ExistingWorkspace == null ? "Create" : "Update")
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter]
-    IMudDialogInstance? MudDialog { get; set; } = default!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
-    private Workspace newWorkspace = new();
-    private string initialPath = "";
+    [Parameter] public Workspace? ExistingWorkspace { get; set; }
+
+    // This is our "working copy" for the form
+    private Workspace workspaceModel = new();
+    private string singlePath = "";
+
+    protected override void OnParametersSet()
+    {
+        if (ExistingWorkspace != null)
+        {
+            // Pre-fill the form with existing data
+            workspaceModel = new Workspace
+            {
+                Name = ExistingWorkspace.Name,
+                // Create a copy of the paths so we don't modify the UI list prematurely
+                Paths = new List<string>(ExistingWorkspace.Paths)
+            };
+
+            singlePath = workspaceModel.Paths.FirstOrDefault() ?? "";
+        }
+    }
 
     private void Cancel() => MudDialog.Cancel();
 
     private void Submit()
     {
-        if (!string.IsNullOrWhiteSpace(initialPath))
+        // Simple validation: Ensure Name isn't empty
+        if (string.IsNullOrWhiteSpace(workspaceModel.Name)) return;
+
+        // Update the paths list based on the text box
+        workspaceModel.Paths.Clear();
+        if (!string.IsNullOrWhiteSpace(singlePath))
         {
-            newWorkspace.Paths.Add(initialPath);
+            workspaceModel.Paths.Add(singlePath);
         }
-        MudDialog.Close(DialogResult.Ok(newWorkspace));
+
+        MudDialog.Close(DialogResult.Ok(workspaceModel));
     }
 }

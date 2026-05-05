@@ -2,8 +2,8 @@
 using System.Text.Json;
 using System.Diagnostics;
 
-
 namespace WorkspaceJarvis.UI.Services;
+
 public class WorkspaceService
 {
     private readonly string _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
@@ -58,6 +58,56 @@ public class WorkspaceService
         catch (Exception ex)
         {
             // We pass the actual error message back to the UI
+            return (false, ex.Message);
+        }
+    }
+
+    public (bool Success, string Message) DeleteWorkspace(string workspaceName)
+    {
+        try
+        {
+            var workspaces = GetWorkspaces();
+
+            // Find the item to remove
+            var itemToRemove = workspaces.FirstOrDefault(w => w.Name == workspaceName);
+
+            if (itemToRemove == null)
+                return (false, "Workspace not found.");
+
+            workspaces.Remove(itemToRemove);
+
+            // Save the updated list
+            var config = new WorkspaceConfig { Workspaces = workspaces };
+            var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_configPath, json);
+
+            return (true, "Workspace deleted successfully!");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
+    }
+
+    public (bool Success, string Message) UpdateWorkspace(string oldName, Workspace updatedWs)
+    {
+        try
+        {
+            var workspaces = GetWorkspaces();
+            var index = workspaces.FindIndex(w => w.Name == oldName);
+
+            if (index == -1) return (false, "Workspace not found.");
+
+            workspaces[index] = updatedWs;
+
+            var config = new WorkspaceConfig { Workspaces = workspaces };
+            var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_configPath, json);
+
+            return (true, "Workspace updated!");
+        }
+        catch (Exception ex)
+        {
             return (false, ex.Message);
         }
     }

@@ -28,8 +28,14 @@
                 <MudItem xs="12" sm="6" md="4" lg="2">
                     <MudCard Class="workspace-card pa-3 d-flex flex-column justify-space-between">
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Style="opacity: 0.5;" />
-                            <MudIconButton Icon="@Icons.Material.Filled.EditNote" Color="Color.Info" Size="Size.Small" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                            Color="Color.Error"
+                                            Size="Size.Small"
+                                            OnClick="@(() => OnDeleteClicked(ws.Name))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.EditNote"
+                                            Color="Color.Info"
+                                            Size="Size.Small"
+                                            OnClick="@(() => OpenEditDialog(ws))" />
                         </MudStack>
 
                         <MudStack AlignItems="AlignItems.Center" Spacing="0">
@@ -71,6 +77,62 @@
             {
                 Snackbar.Add(saveResult.Message, Severity.Success);
                 workspaces = WorkspaceService.GetWorkspaces();
+            }
+        }
+    }
+
+    private async Task OpenEditDialog(Workspace ws)
+    {
+        // Capture the name before the user edits it
+        string oldName = ws.Name;
+
+        var parameters = new DialogParameters<AddWorkspaceDialog>
+        {
+            { x => x.ExistingWorkspace, ws }
+        };
+
+        var dialog = await DialogService.ShowAsync<AddWorkspaceDialog>("Edit Workspace", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is Workspace updatedWs)
+        {
+            // Call the service using both the old identifier and the new data
+            var updateResult = WorkspaceService.UpdateWorkspace(oldName, updatedWs);
+
+            if (updateResult.Success)
+            {
+                Snackbar.Add(updateResult.Message, Severity.Success);
+                workspaces = WorkspaceService.GetWorkspaces(); // Refresh UI
+            }
+            else
+            {
+                Snackbar.Add(updateResult.Message, Severity.Error);
+            }
+        }
+    }
+
+    private async Task OnDeleteClicked(string name)
+    {
+        // 1. Ask for confirmation
+        bool? result = await DialogService.ShowMessageBoxAsync(
+            "Warning",
+            $"Are you sure you want to delete the workspace '{name}'?",
+            yesText: "Delete!", cancelText: "Cancel");
+
+        // 2. Process the result
+        if (result == true)
+        {
+            var deleteResult = WorkspaceService.DeleteWorkspace(name);
+
+            if (deleteResult.Success)
+            {
+                Snackbar.Add(deleteResult.Message, Severity.Success);
+                // Refresh the grid
+                workspaces = WorkspaceService.GetWorkspaces();
+            }
+            else
+            {
+                Snackbar.Add(deleteResult.Message, Severity.Error);
             }
         }
     }
