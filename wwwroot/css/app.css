@@ -3,7 +3,6 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
 }
 
-/* Prevents long names from breaking the card layout */
 .mud-typography-subtitle2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -11,7 +10,6 @@
     overflow: hidden;
 }
 
-/* Layout & Scroll Locking */
 .main-viewport {
     flex: 1 1 auto;
     height: 100%;
@@ -26,6 +24,7 @@
 .sticky-header {
     flex-grow: 0;
     flex-shrink: 0;
+    z-index: 100;
 }
 
 .scrollable-grid-container {

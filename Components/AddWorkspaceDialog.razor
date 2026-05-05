@@ -1,0 +1,35 @@
+﻿@using WorkspaceJarvis.UI.Models
+@inherits MudComponentBase
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Add New Workspace</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField T="string" Label="Workspace Name" @bind-Value="newWorkspace.Name" Required="true" />
+        <MudTextField T="string" Label="App Path or URL" @bind-Value="initialPath" HelperText="e.g., C:\Apps\notepad.exe or https://google.com" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance? MudDialog { get; set; } = default!;
+
+    private Workspace newWorkspace = new();
+    private string initialPath = "";
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        if (!string.IsNullOrWhiteSpace(initialPath))
+        {
+            newWorkspace.Paths.Add(initialPath);
+        }
+        MudDialog.Close(DialogResult.Ok(newWorkspace));
+    }
+}

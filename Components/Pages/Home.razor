@@ -2,12 +2,22 @@
 @using WorkspaceJarvis.UI.Models
 @using WorkspaceJarvis.UI.Services
 @inject WorkspaceService WorkspaceService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="main-viewport py-4">
 
-    <MudStack Row="true" Justify="Justify.SpaceBetween" Class="sticky-header mb-4">
-        <MudText Typo="Typo.h5">Your Workspaces</MudText>
-        <MudIconButton Icon="@Icons.Material.Filled.AddCircle" Color="Color.Info" Size="Size.Large" />
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="sticky-header mb-4 px-4">
+        <MudText Typo="Typo.h5" Style="color: #2c2c2c; font-weight: 800; letter-spacing: 1px;">YOUR WORKSPACES</MudText>
+
+        <MudButton Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   Color="Color.Info"
+                   Size="Size.Large"
+                   OnClick="OpenAddDialog"
+                   Style="border-radius: 12px; font-weight: 700; text-transform: none;">
+            Add Workspace
+        </MudButton>
     </MudStack>
 
     <MudPaper Outlined="true" Class="scrollable-grid-container">
@@ -46,8 +56,22 @@
         workspaces = WorkspaceService.GetWorkspaces();
     }
 
-    private void OpenAddDialog()
+    private async Task OpenAddDialog()
     {
-        // We will implement the Create logic here next!
+        var dialog = await DialogService.ShowAsync<AddWorkspaceDialog>("Add New Workspace");
+        // 1. Rename the dialog result to 'dialogResult'
+        var dialogResult = await dialog.Result;
+
+        if (!dialogResult.Canceled && dialogResult.Data is Workspace newWs)
+        {
+            // 2. Rename the service result to 'saveResult'
+            var saveResult = WorkspaceService.SaveWorkspace(newWs);
+
+            if (saveResult.Success)
+            {
+                Snackbar.Add(saveResult.Message, Severity.Success);
+                workspaces = WorkspaceService.GetWorkspaces();
+            }
+        }
     }
 }

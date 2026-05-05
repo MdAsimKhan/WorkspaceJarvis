@@ -16,8 +16,6 @@ namespace WorkspaceJarvis.UI
                 });
 
             builder.Services.AddMauiBlazorWebView();
-            // This registers our service as a "Singleton" 
-            // (one instance for the whole app)
             builder.Services.AddSingleton<WorkspaceService>();
             builder.Services.AddMudServices();
 #if DEBUG

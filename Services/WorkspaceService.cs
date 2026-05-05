@@ -41,4 +41,24 @@ public class WorkspaceService
             }
         }
     }
+
+    public(bool Success, string Message) SaveWorkspace(Workspace newWorkspace)
+    {
+        try
+        {
+            var workspaces = GetWorkspaces();
+            workspaces.Add(newWorkspace);
+
+            var config = new WorkspaceConfig { Workspaces = workspaces };
+            var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+
+            File.WriteAllText(_configPath, json);
+            return (true, "Workspace added successfully!");
+        }
+        catch (Exception ex)
+        {
+            // We pass the actual error message back to the UI
+            return (false, ex.Message);
+        }
+    }
 }
