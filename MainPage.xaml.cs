@@ -1,4 +1,4 @@
-﻿namespace WorkspaceJarvis.UI
+﻿namespace WorkspaceJarvis
 {
     public partial class MainPage : ContentPage
     {

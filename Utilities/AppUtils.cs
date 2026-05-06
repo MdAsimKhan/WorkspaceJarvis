@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
-namespace WorkspaceJarvis.UI.Utilities;
+namespace WorkspaceJarvis.Utilities;
 
 public static class AppUtils
 {

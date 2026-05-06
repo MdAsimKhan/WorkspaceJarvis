@@ -1,4 +1,4 @@
-﻿namespace WorkspaceJarvis.UI
+﻿namespace WorkspaceJarvis
 {
     public partial class App : Application
     {
@@ -9,7 +9,7 @@
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new MainPage()) { Title = "WorkspaceJarvis.UI" };
+            return new Window(new MainPage()) { Title = "WorkspaceJarvis" };
         }
     }
 }

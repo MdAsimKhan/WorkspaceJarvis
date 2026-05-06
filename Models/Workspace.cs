@@ -1,4 +1,4 @@
-﻿namespace WorkspaceJarvis.UI.Models;
+﻿namespace WorkspaceJarvis.Models;
 
 public class Workspace
 {

@@ -1,8 +1,8 @@
-using WorkspaceJarvis.UI.Models;
+using WorkspaceJarvis.Models;
 using System.Text.Json;
 using System.Diagnostics;
 
-namespace WorkspaceJarvis.UI.Services;
+namespace WorkspaceJarvis.Services;
 
 public class WorkspaceService
 {

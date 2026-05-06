@@ -1,7 +1,7 @@
-﻿using WorkspaceJarvis.UI.Services;
+﻿using WorkspaceJarvis.Services;
 using MudBlazor.Services;
 
-namespace WorkspaceJarvis.UI
+namespace WorkspaceJarvis
 {
     public static class MauiProgram
     {
