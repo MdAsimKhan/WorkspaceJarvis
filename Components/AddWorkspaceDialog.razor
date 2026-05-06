@@ -1,4 +1,5 @@
 @using WorkspaceJarvis.UI.Models
+@using WorkspaceJarvis.UI.Utilities
 @inherits MudComponentBase
 
 <MudDialog>
@@ -24,10 +25,40 @@
                 {
                     @foreach (var path in workspaceModel.Paths)
                     {
-                        <MudListItem Icon="@Icons.Material.Filled.InsertDriveFile">
+                        var iconSource = AppUtils.GetIconBase64(path);
+
+                        <MudListItem>
                             <div class="d-flex align-center justify-space-between w-100">
-                                <MudText Typo="Typo.body2" Style="word-break: break-all; margin-right: 8px;">@path</MudText>
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemovePath(path))" />
+                                <div class="d-flex align-center" style="overflow: hidden;">
+
+                                    @* ICON DISPLAY *@
+                                    @if (iconSource == "LINK_ICON")
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Public" Color="Color.Info" Class="mr-3" />
+                                    }
+                                    else if (!string.IsNullOrEmpty(iconSource))
+                                    {
+                                        <img src="@iconSource" style="width: 24px; height: 24px; margin-right: 12px;" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Class="mr-3" />
+                                    }
+
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.body1" Class="fw-bold text-truncate">
+                                            @AppUtils.GetFriendlyName(path)
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Class="text-truncate" Style="opacity: 0.6;">
+                                            @path
+                                        </MudText>
+                                    </div>
+                                </div>
+
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Small"
+                                               OnClick="@(() => RemovePath(path))" />
                             </div>
                         </MudListItem>
                     }

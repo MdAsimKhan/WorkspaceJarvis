@@ -23,17 +23,24 @@ public class WorkspaceService
         return config?.Workspaces ?? new();
     }
 
-    public void Launch(Workspace workspace)
+    public async Task LaunchWorkspaceAsync(Guid id, int delayMilliseconds = 1500)
     {
-        foreach (var path in workspace.Paths)
+        var workspaces = GetWorkspaces();
+        var ws = workspaces.FirstOrDefault(w => w.Id == id);
+        foreach (var path in ws.Paths)
         {
             try
             {
-                Process.Start(new ProcessStartInfo
+                var psi = new ProcessStartInfo
                 {
                     FileName = path,
                     UseShellExecute = true
-                });
+                };
+
+                Process.Start(psi);
+
+                // Wait before launching the next one
+                await Task.Delay(delayMilliseconds);
             }
             catch (Exception ex)
             {
@@ -42,7 +49,7 @@ public class WorkspaceService
         }
     }
 
-    public(bool Success, string Message) SaveWorkspace(Workspace newWorkspace)
+    public (bool Success, string Message) SaveWorkspace(Workspace newWorkspace)
     {
         try
         {
@@ -102,7 +109,6 @@ public class WorkspaceService
             return (false, ex.Message);
         }
     }
-
 
     private void SaveAll(List<Workspace> workspaces)
     {

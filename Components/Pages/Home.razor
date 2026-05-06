@@ -43,9 +43,21 @@
                             <MudText Typo="Typo.caption">Apps: @ws.Paths.Count</MudText>
                         </MudStack>
 
-                        <MudButton Variant="Variant.Filled" Class="launch-btn" @onclick="() => WorkspaceService.Launch(ws)">
-                            Launch
-                        </MudButton>
+                            <MudButton Variant="Variant.Filled"
+                                       Class="launch-btn"
+                                       Disabled="@(_activeLaunchingId != null)"
+                                       OnClick="@(() => HandleLaunch(ws))">
+
+                                @if (_activeLaunchingId == ws.Id)
+                                {
+                                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                    <MudText Class="ms-2">Launching...</MudText>
+                                }
+                                else
+                                {
+                                    <MudText>Launch</MudText>
+                                }
+                            </MudButton>
                     </MudCard>
                 </MudItem>
             }
@@ -134,6 +146,27 @@
             {
                 Snackbar.Add(deleteResult.Message, Severity.Error);
             }
+        }
+    }
+
+    private bool _isLaunching;
+    // Track which specific workspace is launching
+    private Guid? _activeLaunchingId;
+
+    private async Task HandleLaunch(Workspace ws)
+    {
+        // Don't start if another (or the same) launch is already in progress
+        if (_activeLaunchingId != null) return;
+
+        _activeLaunchingId = ws.Id;
+        try 
+        {
+            await WorkspaceService.LaunchWorkspaceAsync(ws.Id);
+        }
+        finally 
+        {
+            // Reset so buttons become active again
+            _activeLaunchingId = null;
         }
     }
 }
