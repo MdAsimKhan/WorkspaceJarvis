@@ -69,35 +69,34 @@
 @code {
     private List<Workspace> workspaces = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        workspaces = WorkspaceService.GetWorkspaces();
+        workspaces = await WorkspaceService.GetWorkspacesAsync();
     }
 
     private async Task OpenAddDialog()
     {
         var dialog = await DialogService.ShowAsync<AddWorkspaceDialog>("Add New Workspace");
-        // 1. Rename the dialog result to 'dialogResult'
         var dialogResult = await dialog.Result;
 
         if (!dialogResult.Canceled && dialogResult.Data is Workspace newWs)
         {
-            // 2. Rename the service result to 'saveResult'
-            var saveResult = WorkspaceService.SaveWorkspace(newWs);
+            var saveResult = await WorkspaceService.SaveWorkspaceAsync(newWs);
 
             if (saveResult.Success)
             {
                 Snackbar.Add(saveResult.Message, Severity.Success);
-                workspaces = WorkspaceService.GetWorkspaces();
+                workspaces = await WorkspaceService.GetWorkspacesAsync();
+            }
+            else
+            {
+                Snackbar.Add(saveResult.Message, Severity.Error);
             }
         }
     }
 
     private async Task OpenEditDialog(Workspace ws)
     {
-        // Capture the name before the user edits it
-
-
         var parameters = new DialogParameters<AddWorkspaceDialog>
         {
             { x => x.ExistingWorkspace, ws }
@@ -108,13 +107,12 @@
 
         if (!result.Canceled && result.Data is Workspace updatedWs)
         {
-            // Call the service using both the old identifier and the new data
-            var updateResult = WorkspaceService.UpdateWorkspace(updatedWs);
+            var updateResult = await WorkspaceService.UpdateWorkspaceAsync(updatedWs);
 
             if (updateResult.Success)
             {
                 Snackbar.Add(updateResult.Message, Severity.Success);
-                workspaces = WorkspaceService.GetWorkspaces(); // Refresh UI
+                workspaces = await WorkspaceService.GetWorkspacesAsync();
             }
             else
             {
@@ -125,22 +123,19 @@
 
     private async Task OnDeleteClicked(Workspace ws)
     {
-        // 1. Ask for confirmation
         bool? result = await DialogService.ShowMessageBoxAsync(
             "Warning",
             $"Are you sure you want to delete the workspace '{ws.Name}'?",
             yesText: "Delete!", cancelText: "Cancel");
 
-        // 2. Process the result
         if (result == true)
         {
-            var deleteResult = WorkspaceService.DeleteWorkspace(ws.Id);
+            var deleteResult = await WorkspaceService.DeleteWorkspaceAsync(ws.Id);
 
             if (deleteResult.Success)
             {
                 Snackbar.Add(deleteResult.Message, Severity.Success);
-                // Refresh the grid
-                workspaces = WorkspaceService.GetWorkspaces();
+                workspaces = await WorkspaceService.GetWorkspacesAsync();
             }
             else
             {
@@ -149,13 +144,10 @@
         }
     }
 
-    private bool _isLaunching;
-    // Track which specific workspace is launching
     private Guid? _activeLaunchingId;
 
     private async Task HandleLaunch(Workspace ws)
     {
-        // Don't start if another (or the same) launch is already in progress
         if (_activeLaunchingId != null) return;
 
         _activeLaunchingId = ws.Id;
@@ -165,7 +157,6 @@
         }
         finally 
         {
-            // Reset so buttons become active again
             _activeLaunchingId = null;
         }
     }

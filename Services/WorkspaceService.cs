@@ -1,34 +1,42 @@
-using WorkspaceJarvis.Models;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using WorkspaceJarvis.Data;
+using WorkspaceJarvis.Models;
 
 namespace WorkspaceJarvis.Services;
 
-public class WorkspaceService
+public class WorkspaceService(AppDbContext context)
 {
-    private readonly string _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+    private readonly AppDbContext _context = context;
 
-    public List<Workspace> GetWorkspaces()
+    public async Task<List<WorkspaceJarvis.Models.Workspace>> GetWorkspacesAsync()
     {
-        if (!File.Exists(_configPath))
+        // 1. Pull the data from the SQLite tables
+        var entities = await _context.Workspaces
+            .Include(w => w.Paths)
+            .ToListAsync();
+
+        // 2. Convert each 'Entity' into a 'Model' the UI can use
+        return entities.Select(e => new WorkspaceJarvis.Models.Workspace
         {
-            return new List<Workspace>();
-        }
-        var json = File.ReadAllText(_configPath);
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-        var config = JsonSerializer.Deserialize<WorkspaceConfig>(json, options);
-        return config?.Workspaces ?? new();
+            Id = e.Id,
+            Name = e.Name,
+            // We take the PathValue string from each path entity
+            Paths = e.Paths.Select(p => p.PathValue).ToList()
+        }).ToList();
     }
 
     public async Task LaunchWorkspaceAsync(Guid id, int delayMilliseconds = 1500)
     {
-        var workspaces = GetWorkspaces();
-        var ws = workspaces.FirstOrDefault(w => w.Id == id);
-        foreach (var path in ws.Paths)
+        var workspace = await _context.Workspaces
+            .Include(w => w.Paths)
+            .FirstOrDefaultAsync(w => w.Id == id);
+
+        if (workspace == null) return;
+
+        foreach (var pathEntity in workspace.Paths)
         {
+            var path = pathEntity.PathValue;
             try
             {
                 var psi = new ProcessStartInfo
@@ -49,39 +57,39 @@ public class WorkspaceService
         }
     }
 
-    public (bool Success, string Message) SaveWorkspace(Workspace newWorkspace)
+    public async Task<(bool Success, string Message)> SaveWorkspaceAsync(Workspace model)
     {
         try
         {
-            var workspaces = GetWorkspaces();
-            workspaces.Add(newWorkspace);
+            var entity = new WorkspaceJarvis.Data.Entities.Workspace
+            {
+                Id = model.Id == Guid.Empty ? Guid.NewGuid() : model.Id,
+                Name = model.Name,
+                Paths = model.Paths.Select(p => new WorkspaceJarvis.Data.Entities.WorkspacePath
+                {
+                    PathValue = p
+                }).ToList()
+            };
 
-            var config = new WorkspaceConfig { Workspaces = workspaces };
-            var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-
-            File.WriteAllText(_configPath, json);
+            _context.Workspaces.Add(entity);
+            await _context.SaveChangesAsync();
             return (true, "Workspace added successfully!");
         }
         catch (Exception ex)
         {
-            // We pass the actual error message back to the UI
             return (false, ex.Message);
         }
     }
 
-    public (bool Success, string Message) DeleteWorkspace(Guid id)
+    public async Task<(bool Success, string Message)> DeleteWorkspaceAsync(Guid id)
     {
         try
         {
-            var workspaces = GetWorkspaces();
-            var itemToRemove = workspaces.FirstOrDefault(w => w.Id == id);
+            var workspace = await _context.Workspaces.FindAsync(id);
+            if (workspace == null) return (false, "Workspace not found.");
 
-            if (itemToRemove == null)
-                return (false, "Workspace not found.");
-
-            workspaces.Remove(itemToRemove);
-            SaveAll(workspaces);
-
+            _context.Workspaces.Remove(workspace);
+            await _context.SaveChangesAsync();
             return (true, "Workspace deleted successfully!");
         }
         catch (Exception ex)
@@ -90,30 +98,32 @@ public class WorkspaceService
         }
     }
 
-    public (bool Success, string Message) UpdateWorkspace(Workspace updatedWs)
+    public async Task<(bool Success, string Message)> UpdateWorkspaceAsync(Workspace model)
     {
         try
         {
-            var workspaces = GetWorkspaces();
-            var index = workspaces.FindIndex(w => w.Id == updatedWs.Id);
+            var entity = await _context.Workspaces
+                .Include(w => w.Paths)
+                .FirstOrDefaultAsync(w => w.Id == model.Id);
 
-            if (index == -1) return (false, "Workspace not found.");
+            if (entity == null) return (false, "Workspace not found.");
 
-            workspaces[index] = updatedWs;
-            SaveAll(workspaces);
+            entity.Name = model.Name;
 
+            // Simple way to update paths: remove old ones and add new ones
+            _context.WorkspacePaths.RemoveRange(entity.Paths);
+            entity.Paths = model.Paths.Select(p => new WorkspaceJarvis.Data.Entities.WorkspacePath
+            {
+                PathValue = p,
+                WorkspaceId = entity.Id
+            }).ToList();
+
+            await _context.SaveChangesAsync();
             return (true, "Workspace updated!");
         }
         catch (Exception ex)
         {
             return (false, ex.Message);
         }
-    }
-
-    private void SaveAll(List<Workspace> workspaces)
-    {
-        var json = JsonSerializer.Serialize(new { Workspaces = workspaces },
-            new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(_configPath, json);
     }
 }

@@ -1,5 +1,6 @@
-﻿using WorkspaceJarvis.Services;
-using MudBlazor.Services;
+﻿using MudBlazor.Services;
+using WorkspaceJarvis.Data;
+using WorkspaceJarvis.Services;
 
 namespace WorkspaceJarvis
 {
@@ -18,6 +19,7 @@ namespace WorkspaceJarvis
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddSingleton<WorkspaceService>();
             builder.Services.AddMudServices();
+            builder.Services.AddDbContext<AppDbContext>();
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
 #endif

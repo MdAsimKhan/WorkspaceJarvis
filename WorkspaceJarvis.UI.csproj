@@ -73,4 +73,10 @@
         <PackageReference Include="System.Drawing.Common" Version="10.0.7" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="jarvis.db">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
